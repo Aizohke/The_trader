@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: the-trader-server
+    env: node
+    region: oregon          # free tier region
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000           # Render assigns this automatically
+      - key: MONGO_URI
+        sync: false            # set manually in Render dashboard
+      - key: CLIENT_URL
+        sync: false            # set to your Netlify URL, e.g. https://the-trader.netlify.app

@@ -1,0 +1,66 @@
+.chart-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Stat bar */
+.stat-bar {
+  display: flex;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 16px 8px 0;
+  margin-right: 16px;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+}
+.stat-item:last-child { border-right: none; }
+.stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text-muted); }
+.stat-val   { font-size: 12px; font-weight: 600; }
+
+/* Toolbar */
+.chart-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chart-title { display: flex; flex-direction: column; gap: 1px; }
+.chart-pair  { font-size: 13px; font-weight: 700; }
+.chart-desc  { font-size: 10px; color: var(--text-muted); }
+
+.tf-group { display: flex; gap: 3px; }
+.tf-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tf-btn:hover { border-color: var(--blue); color: var(--blue); }
+.tf-btn.active { background: var(--blue-dim); border-color: var(--blue); color: var(--blue); font-weight: 600; }
+
+/* Chart area */
+.chart-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}

@@ -1,0 +1,26 @@
+[build]
+  base    = "client"
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+# SPA fallback — all routes served by index.html
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# Proxy API calls to your Render backend (avoids CORS in production)
+# Replace YOUR-RENDER-APP with your actual Render service name
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://YOUR-RENDER-APP.onrender.com/api/:splat"
+  status = 200
+  force  = true
+
+[dev]
+  command     = "npm start"
+  port        = 3000
+  targetPort  = 3000
