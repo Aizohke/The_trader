@@ -1,13 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import { createChart, CrosshairMode, LineStyle } from 'lightweight-charts';
+import { useWs } from '../context/WsContext';
 
-export default function TradingChart({ candles, signals }) {
+export default function TradingChart({ signals }) {
+  const { candles, liveBar } = useWs();
   const containerRef = useRef(null);
   const chartRef     = useRef(null);
   const seriesRef    = useRef(null);
   const lineRefs     = useRef([]);
 
-  /* ── Init chart once ─────────────────────────────────── */
+  // ── Init chart once ───────────────────────────────────────
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -24,57 +26,69 @@ export default function TradingChart({ candles, signals }) {
       },
       crosshair: { mode: CrosshairMode.Normal },
       rightPriceScale: { borderColor: '#232a38' },
-      timeScale:       { borderColor: '#232a38', timeVisible: true, secondsVisible: false },
+      timeScale: {
+        borderColor:    '#232a38',
+        timeVisible:    true,
+        secondsVisible: false,
+      },
       handleScroll: true,
       handleScale:  true,
     });
-
     chartRef.current = chart;
 
     const series = chart.addCandlestickSeries({
-      upColor:        '#10b981',
-      downColor:      '#ef4444',
-      borderUpColor:  '#10b981',
-      borderDownColor:'#ef4444',
-      wickUpColor:    '#10b981',
-      wickDownColor:  '#ef4444',
+      upColor:         '#10b981',
+      downColor:       '#ef4444',
+      borderUpColor:   '#10b981',
+      borderDownColor: '#ef4444',
+      wickUpColor:     '#10b981',
+      wickDownColor:   '#ef4444',
     });
     seriesRef.current = series;
 
-    /* Resize observer */
     const ro = new ResizeObserver(() => {
       if (containerRef.current) {
-        chart.resize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+        chart.resize(
+          containerRef.current.clientWidth,
+          containerRef.current.clientHeight
+        );
       }
     });
     ro.observe(containerRef.current);
 
-    return () => {
-      ro.disconnect();
-      chart.remove();
-    };
+    return () => { ro.disconnect(); chart.remove(); };
   }, []);
 
-  /* ── Update candles ──────────────────────────────────── */
+  // ── Load closed candles ───────────────────────────────────
   useEffect(() => {
     if (!seriesRef.current || !candles.length) return;
-    // Deduplicate by time before setting
-    const seen = new Set();
-    const deduped = candles.filter((c) => {
-      if (seen.has(c.time)) return false;
-      seen.add(c.time);
-      return true;
-    }).sort((a, b) => a.time - b.time);
+
+    // Deduplicate and sort
+    const seen   = new Set();
+    const deduped = candles
+      .filter((c) => { if (seen.has(c.time)) return false; seen.add(c.time); return true; })
+      .sort((a, b) => a.time - b.time);
+
     seriesRef.current.setData(deduped);
-    chartRef.current?.timeScale().fitContent();
+    chartRef.current?.timeScale().scrollToRealTime();
   }, [candles]);
 
-  /* ── Annotate latest signal ──────────────────────────── */
+  // ── Update live in-progress bar on every tick ─────────────
+  // We append/update the current forming candle without affecting history
   useEffect(() => {
-    if (!seriesRef.current || !signals.length) return;
-    const sig = signals[0]; // most recent
+    if (!seriesRef.current || !liveBar) return;
+    try {
+      // lightweight-charts update() handles upsert by time
+      seriesRef.current.update(liveBar);
+    } catch (_) {}
+  }, [liveBar]);
 
-    // Remove old lines
+  // ── Draw ICT annotations for latest signal ────────────────
+  useEffect(() => {
+    if (!seriesRef.current || !signals || !signals.length) return;
+    const sig = signals[0];
+
+    // Remove previous annotation lines
     lineRefs.current.forEach((l) => {
       try { seriesRef.current.removePriceLine(l); } catch (_) {}
     });
@@ -94,11 +108,11 @@ export default function TradingChart({ candles, signals }) {
     };
 
     const isBull = sig.direction === 'BUY';
-    mkLine(sig.entry,     '#3b82f6',  '● ENTRY',   false);
-    mkLine(sig.sl,        '#ef4444',  '✕ SL',      true);
-    mkLine(sig.tp,        '#10b981',  '✓ TP',      true);
-    mkLine(sig.fvgTop,    isBull ? '#f59e0b' : '#8b5cf6', 'FVG↑', true);
-    mkLine(sig.fvgBottom, isBull ? '#f59e0b' : '#8b5cf6', 'FVG↓', true);
+    mkLine(sig.entry,     '#3b82f6',                           '● ENTRY',  false);
+    mkLine(sig.sl,        '#ef4444',                           '✕ SL',     true);
+    mkLine(sig.tp,        '#10b981',                           '✓ TP',     true);
+    mkLine(sig.fvgTop,    isBull ? '#f59e0b' : '#8b5cf6',     'FVG ↑',    true);
+    mkLine(sig.fvgBottom, isBull ? '#f59e0b' : '#8b5cf6',     'FVG ↓',    true);
   }, [signals]);
 
   return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;

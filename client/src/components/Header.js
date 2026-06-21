@@ -3,7 +3,7 @@ import { useWs } from '../context/WsContext';
 import './Header.css';
 
 export default function Header() {
-  const { ticker, connected, signals } = useWs();
+  const { ticker, connected, signals, liveBar } = useWs();
   const session = getActiveSession();
 
   return (
@@ -17,14 +17,15 @@ export default function Header() {
         <div className="header-divider" />
         <div className="pair-block">
           <span className="pair-name">EUR/USD</span>
-          <span className="pair-tf">5M · Simulated Feed</span>
+          <span className="pair-tf">5M · Twelve Data{liveBar ? ' · Live' : ''}</span>
         </div>
       </div>
 
       <div className="header-center">
         <div className="ticker-price mono">{ticker.price || '—'}</div>
         <div className={`ticker-change mono ${ticker.dir === 'up' ? 'text-up' : 'text-dn'}`}>
-          {ticker.dir === 'up' ? '▲' : '▼'} {ticker.change > 0 ? '+' : ''}{ticker.change?.toFixed(5)}
+          {ticker.dir === 'up' ? '▲' : '▼'}{' '}
+          {ticker.change > 0 ? '+' : ''}{Number(ticker.change).toFixed(5)}
         </div>
       </div>
 
@@ -54,5 +55,10 @@ function getActiveSession() {
 }
 
 function sessionLabel(s) {
-  return { asia: '🌏 Asia', london: '🇬🇧 London', newyork: '🗽 New York', off: '💤 Off-Hours' }[s];
+  return {
+    asia:     '🌏 Asia',
+    london:   '🇬🇧 London',
+    newyork:  '🗽 New York',
+    off:      '💤 Off-Hours',
+  }[s];
 }
