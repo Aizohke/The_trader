@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { WsProvider } from './context/WsContext';
-import Header from './components/Header';
+import Header    from './components/Header';
 import ChartPanel from './components/ChartPanel';
-import SidePanel from './components/SidePanel';
-import Toast from './components/Toast';
+import SidePanel  from './components/SidePanel';
+import Toast      from './components/Toast';
 import './App.css';
 
 export default function App() {
   const [sideTab, setSideTab] = useState('signals');
-
   return (
     <WsProvider>
       <div className="app">
@@ -17,7 +16,7 @@ export default function App() {
           <main className="main-panel">
             <ChartPanel />
           </main>
-          <aside className="side-panel">
+          <aside className="side-panel-wrap">
             <SidePanel activeTab={sideTab} onTabChange={setSideTab} />
           </aside>
         </div>

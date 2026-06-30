@@ -6,21 +6,20 @@ const { computeSessionLevels } = require('../controllers/ictEngine');
 // GET /api/candles?limit=150
 router.get('/', async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit) || 150, 500);
+    const limit   = Math.min(parseInt(req.query.limit) || 150, 500);
     const candles = await Candle.find().sort({ time: -1 }).limit(limit);
-    res.json(candles.reverse()); // chronological order
+    res.json(candles.reverse());
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/candles/context — ICT session levels computed server-side
+// GET /api/candles/context — live ICT session context
 router.get('/context', async (req, res) => {
   try {
     const candles = await Candle.find().sort({ time: -1 }).limit(150);
     const data    = candles.reverse().map((c) => c.toObject());
-    const context = computeSessionLevels(data);
-    res.json(context);
+    res.json(computeSessionLevels(data));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

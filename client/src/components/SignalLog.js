@@ -1,55 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useWs } from '../context/WsContext';
 import './SignalLog.css';
 
 const BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 export default function SignalLog() {
+  const { deleteSignal, updateSignal } = useWs();
   const [data,    setData]    = useState({ signals: [], stats: {}, pagination: {} });
   const [loading, setLoading] = useState(true);
   const [filter,  setFilter]  = useState({ direction: '', outcome: '' });
   const [page,    setPage]    = useState(1);
-  const [updating, setUpdating] = useState(null);
+  const [clearing,setClearing]= useState(false);
 
-  const fetchSignals = async () => {
+  const fetchSignals = useCallback(async () => {
     setLoading(true);
     try {
-      const params = { page, limit: 15, ...filter };
-      Object.keys(params).forEach((k) => !params[k] && delete params[k]);
-      const res = await axios.get(`${BASE}/api/signals`, { params });
-      setData(res.data);
+      const params = new URLSearchParams({ page, limit: 15 });
+      if (filter.direction) params.set('direction', filter.direction);
+      if (filter.outcome)   params.set('outcome',   filter.outcome);
+      const res  = await fetch(`${BASE}/api/signals?${params}`);
+      const json = await res.json();
+      setData(json);
     } catch (e) {
-      console.error('Fetch signals error:', e.message);
+      console.error('Fetch signals:', e.message);
     } finally {
       setLoading(false);
     }
+  }, [page, filter]);
+
+  useEffect(() => { fetchSignals(); }, [fetchSignals]);
+
+  const handleDelete = async (id) => {
+    try { await deleteSignal(id); fetchSignals(); }
+    catch (e) { console.error(e); }
   };
 
-  useEffect(() => { fetchSignals(); }, [page, filter]);
+  const handleUpdate = async (id, body) => {
+    try { await updateSignal(id, body); fetchSignals(); }
+    catch (e) { console.error(e); }
+  };
 
-  const updateOutcome = async (id, outcome, pips) => {
-    setUpdating(id);
+  const handleClearAll = async () => {
+    if (!window.confirm('Delete ALL signals? This cannot be undone.')) return;
+    setClearing(true);
     try {
-      await axios.patch(`${BASE}/api/signals/${id}`, { outcome, pips: parseFloat(pips) });
+      await fetch(`${BASE}/api/signals`, { method: 'DELETE' });
       fetchSignals();
-    } catch (e) {
-      console.error(e.message);
-    } finally {
-      setUpdating(null);
-    }
+    } catch (e) { console.error(e); }
+    setClearing(false);
   };
 
   const { signals = [], stats = {}, pagination = {} } = data;
 
   return (
     <div className="log-panel">
-      {/* Stats bar */}
+      {/* Stats */}
       <div className="log-stats">
         {[
-          { label: 'Total', val: stats.total || 0, color: 'var(--text-primary)' },
-          { label: 'Win Rate', val: (stats.winRate || '0') + '%', color: 'var(--green)' },
+          { label: 'Total',    val: stats.total || 0,                                                                 color: 'var(--text-primary)' },
+          { label: 'Win Rate', val: (stats.winRate || '0') + '%',                                                    color: 'var(--green)' },
           { label: 'Net Pips', val: stats.netPips ? (parseFloat(stats.netPips) > 0 ? '+' : '') + stats.netPips : '—', color: parseFloat(stats.netPips) >= 0 ? 'var(--green)' : 'var(--red)' },
-          { label: 'Pending', val: stats.pending || 0, color: 'var(--amber)' },
+          { label: 'Pending',  val: stats.pending || 0,                                                               color: 'var(--amber)' },
         ].map(({ label, val, color }) => (
           <div className="log-stat" key={label}>
             <span className="log-stat-lbl">{label}</span>
@@ -58,7 +69,7 @@ export default function SignalLog() {
         ))}
       </div>
 
-      {/* Filters */}
+      {/* Filters + actions */}
       <div className="log-filters">
         <select className="log-select" value={filter.direction} onChange={(e) => { setFilter((f) => ({ ...f, direction: e.target.value })); setPage(1); }}>
           <option value="">All Directions</option>
@@ -71,32 +82,41 @@ export default function SignalLog() {
           <option value="WIN">Win</option>
           <option value="LOSS">Loss</option>
         </select>
-        <button className="log-refresh" onClick={fetchSignals}>↻</button>
+        <button className="log-refresh" onClick={fetchSignals} title="Refresh">↻</button>
+        <button className="log-clear-all" onClick={handleClearAll} disabled={clearing} title="Delete all signals">
+          {clearing ? '…' : '🗑'}
+        </button>
       </div>
 
       {/* Table */}
       <div className="log-table-wrap">
         {loading ? (
-          <div className="log-loading">Loading signals…</div>
+          <div className="log-state">Loading…</div>
         ) : signals.length === 0 ? (
-          <div className="log-empty">No signals match your filters.</div>
+          <div className="log-state">No signals found.</div>
         ) : (
           <table className="log-table">
             <thead>
               <tr>
-                <th>Time</th>
+                <th>Date</th>
                 <th>Dir</th>
                 <th>Entry</th>
                 <th>SL</th>
                 <th>TP</th>
-                <th>R:R</th>
-                <th>Session</th>
+                <th>RR</th>
+                <th>KZ</th>
                 <th>Outcome</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
               {signals.map((sig) => (
-                <LogRow key={sig._id} sig={sig} onUpdate={updateOutcome} updating={updating === sig._id} />
+                <LogRow
+                  key={sig._id}
+                  sig={sig}
+                  onDelete={() => handleDelete(sig._id)}
+                  onUpdate={(body) => handleUpdate(sig._id, body)}
+                />
               ))}
             </tbody>
           </table>
@@ -115,15 +135,22 @@ export default function SignalLog() {
   );
 }
 
-function LogRow({ sig, onUpdate, updating }) {
-  const [editing, setEditing] = useState(false);
-  const [pips,    setPips]    = useState('');
+function LogRow({ sig, onDelete, onUpdate }) {
+  const [editing,   setEditing]   = useState(false);
+  const [pips,      setPips]      = useState('');
+  const [busy,      setBusy]      = useState(false);
+  const [confirmDel,setConfirmDel]= useState(false);
   const bull = sig.direction === 'BUY';
-  const time = sig.createdAt ? new Date(sig.createdAt).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+  const time = sig.createdAt
+    ? new Date(sig.createdAt).toLocaleString('en-GB', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+    : '—';
 
-  const submit = (outcome) => {
-    onUpdate(sig._id, outcome, pips || (outcome === 'WIN' ? sig.tpPips : -sig.slPips));
+  const submit = async (outcome) => {
+    setBusy(true);
+    const p = pips !== '' ? parseFloat(pips) : (outcome === 'WIN' ? sig.tpPips : -(sig.slPips));
+    await onUpdate({ outcome, pips: p });
     setEditing(false);
+    setBusy(false);
   };
 
   return (
@@ -136,32 +163,33 @@ function LogRow({ sig, onUpdate, updating }) {
       <td className="mono" style={{ color: 'var(--red)' }}>{sig.sl}</td>
       <td className="mono" style={{ color: 'var(--green)' }}>{sig.tp}</td>
       <td className="mono" style={{ color: 'var(--blue)' }}>1:{sig.rr}</td>
-      <td style={{ fontSize: 10, textTransform: 'uppercase', color: 'var(--text-muted)' }}>{sig.session || '—'}</td>
+      <td style={{ fontSize: 9, color: 'var(--text-muted)' }}>{sig.killzone?.replace(' Open', '') || sig.session || '—'}</td>
       <td>
         {sig.outcome === 'PENDING' ? (
           editing ? (
             <div className="outcome-edit">
-              <input
-                className="pips-input"
-                type="number"
-                placeholder="pips"
-                value={pips}
-                onChange={(e) => setPips(e.target.value)}
-              />
-              <button className="oc-btn win" onClick={() => submit('WIN')} disabled={updating}>W</button>
-              <button className="oc-btn loss" onClick={() => submit('LOSS')} disabled={updating}>L</button>
+              <input className="pips-input" type="number" placeholder="pips" value={pips} onChange={(e) => setPips(e.target.value)} />
+              <button className="oc-btn win"    onClick={() => submit('WIN')}  disabled={busy}>W</button>
+              <button className="oc-btn loss"   onClick={() => submit('LOSS')} disabled={busy}>L</button>
               <button className="oc-btn cancel" onClick={() => setEditing(false)}>✕</button>
             </div>
           ) : (
-            <button className="pending-btn" onClick={() => setEditing(true)}>
-              {updating ? '…' : 'Pending'}
-            </button>
+            <button className="pending-btn" onClick={() => setEditing(true)}>Pending</button>
           )
         ) : (
           <span className={`outcome-pill ${sig.outcome === 'WIN' ? 'win' : 'loss'}`}>
             {sig.outcome} {sig.pips ? (sig.pips > 0 ? '+' : '') + sig.pips + 'p' : ''}
           </span>
         )}
+      </td>
+      <td>
+        <button
+          className={`row-del ${confirmDel ? 'row-del-confirm' : ''}`}
+          onClick={() => { if (!confirmDel) { setConfirmDel(true); setTimeout(() => setConfirmDel(false), 3000); } else onDelete(); }}
+          title={confirmDel ? 'Click to confirm delete' : 'Delete'}
+        >
+          {confirmDel ? '!' : '✕'}
+        </button>
       </td>
     </tr>
   );

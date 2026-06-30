@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const candleSchema = new mongoose.Schema(
   {
-    time:   { type: Number, required: true, unique: true }, // unix seconds
+    time:   { type: Number, required: true, unique: true },
     open:   { type: Number, required: true },
     high:   { type: Number, required: true },
     low:    { type: Number, required: true },

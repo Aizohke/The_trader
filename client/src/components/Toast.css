@@ -10,36 +10,43 @@
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
   border: 1px solid var(--border-bright);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  max-width: 340px;
-  animation: toastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  cursor: pointer;
   border-left-width: 3px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  max-width: 360px;
+  cursor: pointer;
+  animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
 .toast-bull { border-left-color: var(--green); }
 .toast-bear { border-left-color: var(--red); }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(16px) scale(0.96); }
-  to   { opacity: 1; transform: translateY(0)   scale(1); }
+  from { opacity:0; transform:translateY(16px) scale(0.95); }
+  to   { opacity:1; transform:translateY(0)    scale(1); }
 }
 
-.toast-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
-
-.toast-body    { flex: 1; min-width: 0; }
-.toast-title   { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
-.toast-details { font-size: 11px; color: var(--text-secondary); margin-bottom: 3px; }
-.toast-rr      { font-size: 10px; color: var(--text-muted); }
+.toast-icon { font-size:22px; flex-shrink:0; margin-top:1px; }
+.toast-body { flex:1; min-width:0; }
+.toast-title {
+  font-size:13px; font-weight:700; color:var(--text-primary);
+  margin-bottom:5px; display:flex; align-items:center; gap:8px;
+}
+.toast-conf {
+  font-size:10px; padding:1px 6px; border-radius:10px;
+  background:var(--green-dim); color:var(--green);
+  border:1px solid var(--green); font-weight:600;
+}
+.toast-row { font-size:11px; color:var(--text-secondary); margin-bottom:2px; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.toast-bias {
+  font-size:9px; padding:1px 5px; border-radius:10px;
+  font-weight:700;
+}
+.toast-bias.bullish { background:var(--green-dim); color:var(--green); }
+.toast-bias.bearish { background:var(--red-dim);   color:var(--red); }
 
 .toast-close {
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  font-size: 12px;
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  line-height: 1;
-  transition: color 0.15s;
+  background:transparent; border:none;
+  color:var(--text-muted); font-size:12px;
+  cursor:pointer; flex-shrink:0; line-height:1;
+  padding:0; transition:color 0.15s;
 }
-.toast-close:hover { color: var(--text-primary); }
+.toast-close:hover { color:var(--text-primary); }

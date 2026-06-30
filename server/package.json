@@ -1,7 +1,6 @@
 {
   "name": "the-trader-server",
-  "version": "1.0.0",
-  "description": "ICT Trading Dashboard - Express Backend",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

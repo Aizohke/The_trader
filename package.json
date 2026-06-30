@@ -1,7 +1,7 @@
 {
-  "name": "the-trader",
-  "version": "1.0.0",
-  "description": "ICT Trading Dashboard - MERN Stack",
+  "name": "the-trader-v2",
+  "version": "2.0.0",
+  "description": "The Trader — ICT Dashboard v2 (MERN Stack)",
   "scripts": {
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "dev": "concurrently \"npm run server\" \"npm run client\"",

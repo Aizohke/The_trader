@@ -13,7 +13,6 @@ const TABS = [
 
 export default function SidePanel({ activeTab, onTabChange }) {
   const { signals } = useWs();
-
   return (
     <div className="side-panel-inner">
       <div className="side-tabs">
@@ -30,7 +29,6 @@ export default function SidePanel({ activeTab, onTabChange }) {
           </button>
         ))}
       </div>
-
       <div className="tab-content">
         {activeTab === 'signals' && <SignalFeed />}
         {activeTab === 'log'     && <SignalLog  />}

@@ -10,36 +10,22 @@
   gap: 16px;
   z-index: 100;
 }
+.header-left  { display: flex; align-items: center; gap: 14px; }
+.header-right { display: flex; align-items: center; gap: 12px; }
 
-/* Left */
-.header-left { display: flex; align-items: center; gap: 14px; }
-.logo { display: flex; align-items: center; gap: 8px; }
-.logo-icon {
-  font-size: 18px;
-  background: linear-gradient(135deg, var(--blue), var(--purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.logo-text  { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
-.logo-sub   { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+.logo         { display: flex; align-items: center; gap: 8px; }
+.logo-icon    { font-size: 18px; background: linear-gradient(135deg, var(--blue), var(--purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.logo-text    { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+.logo-sub     { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
 .header-divider { width: 1px; height: 22px; background: var(--border); }
-.pair-name  { font-size: 14px; font-weight: 600; display: block; }
-.pair-tf    { font-size: 10px; color: var(--text-muted); display: block; }
+.pair-name    { font-size: 14px; font-weight: 600; display: block; }
+.pair-tf      { font-size: 10px; color: var(--text-muted); display: block; }
 
-/* Center */
-.header-center { display: flex; align-items: baseline; gap: 10px; }
-.ticker-price  { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
-.ticker-change { font-size: 12px; }
+.header-center  { display: flex; align-items: baseline; gap: 10px; }
+.ticker-price   { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
+.ticker-change  { font-size: 12px; }
 
-/* Right */
-.header-right { display: flex; align-items: center; gap: 14px; }
-.session-chip {
-  padding: 3px 10px; border-radius: 20px;
-  font-size: 11px; font-weight: 600;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-}
+.session-chip { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); color: var(--text-muted); }
 .session-asia    { background: var(--blue-dim);   border-color: var(--blue);   color: var(--blue); }
 .session-london  { background: var(--purple-dim); border-color: var(--purple); color: #c4b5fd; }
 .session-newyork { background: var(--green-dim);  border-color: var(--green);  color: var(--green); }
@@ -49,17 +35,27 @@
 .meta-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); }
 .meta-val   { font-size: 13px; font-weight: 700; }
 
-.ws-status {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 11px; font-weight: 500;
+/* Notification button */
+.notif-btn {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--amber);
+  background: var(--amber-dim);
+  color: var(--amber);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: opacity 0.15s;
+  white-space: nowrap;
 }
-.ws-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  flex-shrink: 0;
-}
-.ws-on  { color: var(--green); }
-.ws-on  .ws-dot { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
-.ws-off { color: var(--amber); }
-.ws-off .ws-dot { background: var(--amber); }
+.notif-btn:hover { opacity: 0.8; }
+.notif-active    { font-size: 11px; color: var(--green); font-weight: 600; white-space: nowrap; }
 
+.ws-status  { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; }
+.ws-dot     { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.ws-on      { color: var(--green); }
+.ws-on .ws-dot  { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 2s infinite; }
+.ws-off     { color: var(--amber); }
+.ws-off .ws-dot { background: var(--amber); }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
